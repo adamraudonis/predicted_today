@@ -4,16 +4,18 @@ import { supabase } from './supabaseClient';
 import { CloseIcon } from '@chakra-ui/icons';
 
 interface PredictionEntry {
+  predictionText: string;
   year: string;
   percentage: string;
 }
 
 const PredictionForm: React.FC = () => {
-  const [predictions, setPredictions] = useState<PredictionEntry[]>([{ year: '', percentage: '' }]);
+  const [predictionText, setPredictionText] = useState('');
+  const [predictions, setPredictions] = useState<PredictionEntry[]>([{ predictionText: '', year: '', percentage: '' }]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const [user, setUser] = useState<null | { id: string }>(null);
+  const [user, setUser] = useState<null | { id: string, email: string }>(null);
 
   useEffect(() => {
     supabase.auth.onAuthStateChange((_event, session) => {
@@ -32,13 +34,16 @@ const PredictionForm: React.FC = () => {
       const { error } = await supabase
         .from('predictions')
         .insert(predictions.map(prediction => ({
+          prediction_text: predictionText,
           prediction_year: prediction.year,
           prediction_percentage: prediction.percentage,
-          user_id: user.id
+          user_id: user.id,
+          user_email: user.email
         })));
       if (error) throw error;
       alert('Prediction submitted successfully.');
-      setPredictions([{ year: '', percentage: '' }]);
+      setPredictions([{ predictionText: '', year: '', percentage: '' }]);
+      setPredictionText('');
     } catch (error: any) {
       setError(error.error_description || error.message);
     } finally {
@@ -47,7 +52,7 @@ const PredictionForm: React.FC = () => {
   };
 
   const addPredictionEntry = () => {
-    setPredictions([...predictions, { year: '', percentage: '' }]);
+    setPredictions([...predictions, { predictionText: predictionText, year: '', percentage: '' }]);
   };
 
   const updatePredictionEntry = (index: number, field: keyof PredictionEntry, value: string) => {
@@ -74,6 +79,14 @@ const PredictionForm: React.FC = () => {
     <Box p={4}>
       <form onSubmit={handlePredictionSubmit}>
         <VStack spacing={4}>
+          <FormControl isRequired>
+            <FormLabel>Prediction Text</FormLabel>
+            <Input
+              type="text"
+              value={predictionText}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPredictionText(e.target.value)}
+            />
+          </FormControl>
           {predictions.map((prediction, index) => (
             <HStack key={index}>
               <FormControl id={`predictionYear_${index}`} isRequired>
