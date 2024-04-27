@@ -1,9 +1,15 @@
-const { createClient } = require('@supabase/supabase-js');
+const { Pool } = require('pg');
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseKey = process.env.REACT_APP_SUPABASE_KEY;
+// Database connection credentials
+const dbConfig = {
+  user: process.env.DB_USERNAME,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+};
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const pool = new Pool(dbConfig);
 
 async function createPredictionsTable() {
   const createTableSql = `
@@ -15,14 +21,14 @@ async function createPredictionsTable() {
     );
   `;
 
-  const { error } = await supabase.rpc('run_sql', { sql: createTableSql });
-
-  if (error) {
+  try {
+    const client = await pool.connect();
+    await client.query(createTableSql);
+    console.log('Predictions table created successfully.');
+    client.release();
+  } catch (error) {
     console.error('Error creating predictions table:', error);
-    return;
   }
-
-  console.log('Predictions table created successfully.');
 }
 
 createPredictionsTable();
