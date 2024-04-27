@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, FormControl, FormLabel, Input } from '@chakra-ui/react';
+import { Box, Button, FormControl, FormLabel, Input, Link } from '@chakra-ui/react';
 import { signUp } from './supabaseClient';
 
 const SignUpForm: React.FC = () => {
@@ -7,6 +7,7 @@ const SignUpForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isSignUp, setIsSignUp] = useState(true);
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -20,6 +21,10 @@ const SignUpForm: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleForm = () => {
+    setIsSignUp(!isSignUp);
   };
 
   return (
@@ -48,8 +53,13 @@ const SignUpForm: React.FC = () => {
           isLoading={loading}
           type="submit"
         >
-          Sign Up
+          {isSignUp ? 'Sign Up' : 'Log In'}
         </Button>
+        <Box mt={4}>
+          <Link color="teal.500" href="#" onClick={toggleForm}>
+            {isSignUp ? 'Already have an account? Log In' : 'Need an account? Sign Up'}
+          </Link>
+        </Box>
       </form>
     </Box>
   );
