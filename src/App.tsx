@@ -2,6 +2,7 @@ import React from 'react';
 import './App.css';
 import SignUpForm from './SignUpForm';
 import PredictionForm from './PredictionForm';
+import PredictionsList from './PredictionsList';
 
 function App() {
   return (
@@ -9,6 +10,7 @@ function App() {
       <header className="App-header">
         <SignUpForm />
         <PredictionForm />
+        <PredictionsList />
       </header>
     </div>
   );
