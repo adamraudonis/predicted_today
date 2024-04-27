@@ -8,7 +8,8 @@ const SignUpForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSignUp = async () => {
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     try {
       setLoading(true);
       const { error } = await signUp(email, password);
@@ -23,31 +24,33 @@ const SignUpForm: React.FC = () => {
 
   return (
     <Box p={4}>
-      <FormControl id="email" isRequired>
-        <FormLabel>Email address</FormLabel>
-        <Input
-          type="email"
-          value={email}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-        />
-      </FormControl>
-      <FormControl id="password" isRequired mt={4}>
-        <FormLabel>Password</FormLabel>
-        <Input
-          type="password"
-          value={password}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-        />
-      </FormControl>
-      {error && <Box color="red.500" mt={2}>{error}</Box>}
-      <Button
-        mt={4}
-        colorScheme="teal"
-        isLoading={loading}
-        onClick={handleSignUp}
-      >
-        Sign Up
-      </Button>
+      <form onSubmit={handleSignUp}>
+        <FormControl id="email" isRequired>
+          <FormLabel>Email address</FormLabel>
+          <Input
+            type="email"
+            value={email}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+          />
+        </FormControl>
+        <FormControl id="password" isRequired mt={4}>
+          <FormLabel>Password</FormLabel>
+          <Input
+            type="password"
+            value={password}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+          />
+        </FormControl>
+        {error && <Box color="red.500" mt={2}>{error}</Box>}
+        <Button
+          mt={4}
+          colorScheme="teal"
+          isLoading={loading}
+          type="submit"
+        >
+          Sign Up
+        </Button>
+      </form>
     </Box>
   );
 };
