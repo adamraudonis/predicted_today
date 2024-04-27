@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box, Button, FormControl, FormLabel, Input } from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react';
+import { Box, Button, FormControl, FormLabel, Input, Text } from '@chakra-ui/react';
 import { supabase } from './supabaseClient';
 
 const PredictionForm: React.FC = () => {
@@ -8,13 +8,25 @@ const PredictionForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [user, setUser] = useState<null | { id: string }>(null);
+
+  useEffect(() => {
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+  }, []);
+
   const handlePredictionSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!user) {
+      setError('You must be logged in to submit a prediction.');
+      return;
+    }
     try {
       setLoading(true);
       const { error } = await supabase
         .from('predictions')
-        .insert([{ prediction_text: predictionText, prediction_year: predictionYear }]);
+        .insert([{ prediction_text: predictionText, prediction_year: predictionYear, user_id: user.id }]);
       if (error) throw error;
       alert('Prediction submitted successfully.');
       setPredictionText('');
@@ -25,6 +37,14 @@ const PredictionForm: React.FC = () => {
       setLoading(false);
     }
   };
+
+  if (!user) {
+    return (
+      <Box p={4}>
+        <Text>You must be logged in to submit a prediction.</Text>
+      </Box>
+    );
+  }
 
   return (
     <Box p={4}>
