@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, FormControl, FormLabel, Input, Link } from '@chakra-ui/react';
+import { Box, Button, FormControl, FormLabel, Input } from '@chakra-ui/react';
 import { signUp } from './supabaseClient';
 
 const SignUpForm: React.FC = () => {
@@ -56,9 +56,9 @@ const SignUpForm: React.FC = () => {
           {isSignUp ? 'Sign Up' : 'Log In'}
         </Button>
         <Box mt={4}>
-          <Link color="teal.500" href="#" onClick={toggleForm}>
+          <Button color="teal.500" variant="link" onClick={toggleForm}>
             {isSignUp ? 'Already have an account? Log In' : 'Need an account? Sign Up'}
-          </Link>
+          </Button>
         </Box>
       </form>
     </Box>
