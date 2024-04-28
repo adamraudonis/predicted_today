@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Button, FormControl, FormLabel, Input } from '@chakra-ui/react';
-import { signUp } from './supabaseClient';
+import { signUp, signIn } from './supabaseClient';
 
 const SignUpForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -9,13 +9,17 @@ const SignUpForm: React.FC = () => {
   const [error, setError] = useState('');
   const [isSignUp, setIsSignUp] = useState(true);
 
-  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAuth = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
-      setLoading(true);
-      const { error } = await signUp(email, password);
+      const { error } = isSignUp ? await signUp(email, password) : await signIn(email, password);
       if (error) throw error;
-      alert('Sign up successful. Please check your email for a confirmation link.');
+      const successMessage = isSignUp
+        ? 'Sign up successful. Please check your email for a confirmation link.'
+        : 'Sign in successful. Welcome back!';
+      alert(successMessage);
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -29,11 +33,13 @@ const SignUpForm: React.FC = () => {
 
   const toggleForm = () => {
     setIsSignUp(!isSignUp);
+    console.log('Toggled form, isSignUp:', !isSignUp); // Added console log to check the state
+    setError(''); // Clear any existing errors when toggling the form
   };
 
   return (
     <Box p={4}>
-      <form onSubmit={handleSignUp}>
+      <form onSubmit={handleAuth}>
         <FormControl id="email" isRequired>
           <FormLabel>Email address</FormLabel>
           <Input
