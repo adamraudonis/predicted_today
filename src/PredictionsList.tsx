@@ -38,7 +38,7 @@ const PredictionsList: React.FC = () => {
           // Flatten the data structure for rendering
           let flattenedDetails: PredictionDetail[] = [];
           predictionsData.forEach(prediction => {
-            prediction.prediction_details.forEach(detail => {
+            prediction.prediction_details.forEach((detail: any) => {
               flattenedDetails.push({
                 id: prediction.id,
                 prediction_text: prediction.prediction_text,
@@ -51,8 +51,12 @@ const PredictionsList: React.FC = () => {
 
           setPredictionDetails(flattenedDetails);
         }
-      } catch (error: any) {
-        setError(error.error_description || error.message);
+      } catch (error) {
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError('An unexpected error occurred');
+        }
       } finally {
         setLoading(false);
       }
