@@ -5,8 +5,6 @@ import { supabase } from './supabaseClient';
 interface PredictionDetail {
   id: number;
   prediction_text: string;
-  prediction_year: number;
-  prediction_percentage: number;
   user_email: string;
 }
 
@@ -23,11 +21,7 @@ const PredictionsList: React.FC = () => {
           .select(`
             id,
             prediction_text,
-            user_email,
-            prediction_details (
-              prediction_year,
-              prediction_percentage
-            )
+            user_email
           `)
           .order('id', { ascending: false });
 
@@ -35,21 +29,7 @@ const PredictionsList: React.FC = () => {
 
         // Check if predictionsData is not null
         if (predictionsData) {
-          // Flatten the data structure for rendering
-          let flattenedDetails: PredictionDetail[] = [];
-          predictionsData.forEach(prediction => {
-            prediction.prediction_details.forEach((detail: any) => {
-              flattenedDetails.push({
-                id: prediction.id,
-                prediction_text: prediction.prediction_text,
-                prediction_year: detail.prediction_year,
-                prediction_percentage: detail.prediction_percentage,
-                user_email: prediction.user_email
-              });
-            });
-          });
-
-          setPredictionDetails(flattenedDetails);
+          setPredictionDetails(predictionsData);
         }
       } catch (error) {
         if (error instanceof Error) {
@@ -74,8 +54,6 @@ const PredictionsList: React.FC = () => {
         <Thead>
           <Tr>
             <Th>Prediction Text</Th>
-            <Th isNumeric>Year</Th>
-            <Th isNumeric>Value (%)</Th>
             <Th>User Email</Th>
           </Tr>
         </Thead>
@@ -83,8 +61,6 @@ const PredictionsList: React.FC = () => {
           {predictionDetails.map((detail) => (
             <Tr key={detail.id}>
               <Td>{detail.prediction_text}</Td>
-              <Td isNumeric>{detail.prediction_year}</Td>
-              <Td isNumeric>{detail.prediction_percentage}</Td>
               <Td>{detail.user_email}</Td>
             </Tr>
           ))}
