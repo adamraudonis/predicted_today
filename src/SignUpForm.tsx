@@ -13,6 +13,8 @@ const SignUpForm: React.FC = () => {
     e.preventDefault();
     setLoading(true);
 
+    console.log(`Attempting to ${isSignUp ? 'sign up' : 'sign in'}...`); // Added console log for debugging
+
     try {
       const { error } = isSignUp ? await signUp(email, password) : await signIn(email, password);
       if (error) throw error;
@@ -33,7 +35,7 @@ const SignUpForm: React.FC = () => {
 
   const toggleForm = () => {
     setIsSignUp(!isSignUp);
-    console.log('Toggled form, isSignUp:', !isSignUp); // Added console log to check the state
+    console.log('Toggled form, isSignUp:', !isSignUp); // Existing console log to check the state
     setError(''); // Clear any existing errors when toggling the form
   };
 
