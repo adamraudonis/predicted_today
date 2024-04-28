@@ -5,7 +5,6 @@ import { supabase } from './supabaseClient';
 interface PredictionDetail {
   id: number;
   prediction_text: string;
-  user_email: string;
 }
 
 const PredictionsList: React.FC = () => {
@@ -20,8 +19,7 @@ const PredictionsList: React.FC = () => {
           .from('predictions')
           .select(`
             id,
-            prediction_text,
-            user_email
+            prediction_text
           `)
           .order('id', { ascending: false });
 
@@ -54,14 +52,12 @@ const PredictionsList: React.FC = () => {
         <Thead>
           <Tr>
             <Th>Prediction Text</Th>
-            <Th>User Email</Th>
           </Tr>
         </Thead>
         <Tbody>
           {predictionDetails.map((detail) => (
             <Tr key={detail.id}>
               <Td>{detail.prediction_text}</Td>
-              <Td>{detail.user_email}</Td>
             </Tr>
           ))}
         </Tbody>
