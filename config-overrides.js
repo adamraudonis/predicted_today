@@ -1,5 +1,4 @@
 const webpack = require('webpack');
-const path = require('path');
 
 module.exports = function override(config, env) {
   config.plugins = (config.plugins || []).concat([
@@ -8,14 +7,7 @@ module.exports = function override(config, env) {
     }),
   ]);
 
-  // Add an alias for 'react-refresh/runtime' to resolve the import path issue
-  config.resolve = {
-    ...config.resolve,
-    alias: {
-      ...config.resolve.alias,
-      'react-refresh/runtime': path.resolve(__dirname, 'node_modules/react-refresh/runtime.js'),
-    },
-  };
+  // Removed the alias for 'react-refresh/runtime' and the unused 'path' module to prevent import outside of src/ directory
 
   return config;
 };

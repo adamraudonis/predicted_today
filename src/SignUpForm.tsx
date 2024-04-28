@@ -16,8 +16,12 @@ const SignUpForm: React.FC = () => {
       const { error } = await signUp(email, password);
       if (error) throw error;
       alert('Sign up successful. Please check your email for a confirmation link.');
-    } catch (error: any) {
-      setError(error.error_description || error.message);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     } finally {
       setLoading(false);
     }
