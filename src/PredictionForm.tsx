@@ -3,15 +3,14 @@ import { Box, Button, FormControl, FormLabel, Input, Text, VStack, HStack, IconB
 import { supabase } from './supabaseClient';
 import { CloseIcon } from '@chakra-ui/icons';
 
-interface PredictionEntry {
-  predictionText: string;
+interface PredictionDetail {
   year: string;
   percentage: string;
 }
 
 const PredictionForm: React.FC = () => {
   const [predictionText, setPredictionText] = useState('');
-  const [predictions, setPredictions] = useState<PredictionEntry[]>([{ predictionText: '', year: '', percentage: '' }]);
+  const [predictionDetails, setPredictionDetails] = useState<PredictionDetail[]>([{ year: '', percentage: '' }]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -19,7 +18,11 @@ const PredictionForm: React.FC = () => {
 
   useEffect(() => {
     supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      if (session?.user) {
+        setUser({ id: session.user.id, email: session.user.email ?? '' });
+      } else {
+        setUser(null);
+      }
     });
   }, []);
 
@@ -31,18 +34,38 @@ const PredictionForm: React.FC = () => {
     }
     try {
       setLoading(true);
-      const { error } = await supabase
+      // Assuming a 'prediction_details' table exists with a foreign key to 'predictions'
+      const { data: predictionData, error: predictionError } = await supabase
         .from('predictions')
-        .insert(predictions.map(prediction => ({
+        .insert({
           prediction_text: predictionText,
-          prediction_year: prediction.year,
-          prediction_percentage: prediction.percentage,
           user_id: user.id,
           user_email: user.email
-        })));
-      if (error) throw error;
+        });
+
+      if (predictionError) throw predictionError;
+
+      // Check if predictionData is not null and has at least one record
+      if (!predictionData || (predictionData as any[]).length === 0) {
+        throw new Error('Failed to insert prediction data.');
+      }
+
+      const predictionId = (predictionData as any[])[0].id; // Type assertion to any[] to satisfy TypeScript
+
+      const { error: detailsError } = await supabase
+        .from('prediction_details')
+        .insert(
+          predictionDetails.map(detail => ({
+            prediction_id: predictionId,
+            prediction_year: detail.year,
+            prediction_percentage: detail.percentage
+          }))
+        );
+
+      if (detailsError) throw detailsError;
+
       alert('Prediction submitted successfully.');
-      setPredictions([{ predictionText: '', year: '', percentage: '' }]);
+      setPredictionDetails([{ year: '', percentage: '' }]);
       setPredictionText('');
     } catch (error: any) {
       setError(error.error_description || error.message);
@@ -51,20 +74,20 @@ const PredictionForm: React.FC = () => {
     }
   };
 
-  const addPredictionEntry = () => {
-    setPredictions([...predictions, { predictionText: predictionText, year: '', percentage: '' }]);
+  const addPredictionDetail = () => {
+    setPredictionDetails([...predictionDetails, { year: '', percentage: '' }]);
   };
 
-  const updatePredictionEntry = (index: number, field: keyof PredictionEntry, value: string) => {
-    const newPredictions = [...predictions];
-    newPredictions[index][field] = value;
-    setPredictions(newPredictions);
+  const updatePredictionDetail = (index: number, field: keyof PredictionDetail, value: string) => {
+    const newDetails = [...predictionDetails];
+    newDetails[index][field] = value;
+    setPredictionDetails(newDetails);
   };
 
-  const removePredictionEntry = (index: number) => {
-    const newPredictions = [...predictions];
-    newPredictions.splice(index, 1);
-    setPredictions(newPredictions);
+  const removePredictionDetail = (index: number) => {
+    const newDetails = [...predictionDetails];
+    newDetails.splice(index, 1);
+    setPredictionDetails(newDetails);
   };
 
   if (!user) {
@@ -87,32 +110,32 @@ const PredictionForm: React.FC = () => {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPredictionText(e.target.value)}
             />
           </FormControl>
-          {predictions.map((prediction, index) => (
+          {predictionDetails.map((detail, index) => (
             <HStack key={index}>
               <FormControl id={`predictionYear_${index}`} isRequired>
                 <FormLabel>Year</FormLabel>
                 <Input
                   type="number"
-                  value={prediction.year}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updatePredictionEntry(index, 'year', e.target.value)}
+                  value={detail.year}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updatePredictionDetail(index, 'year', e.target.value)}
                 />
               </FormControl>
               <FormControl id={`predictionPercentage_${index}`} isRequired>
                 <FormLabel>Percentage</FormLabel>
                 <Input
                   type="number"
-                  value={prediction.percentage}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updatePredictionEntry(index, 'percentage', e.target.value)}
+                  value={detail.percentage}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updatePredictionDetail(index, 'percentage', e.target.value)}
                 />
               </FormControl>
               <IconButton
-                aria-label="Remove prediction"
+                aria-label="Remove prediction detail"
                 icon={<CloseIcon />}
-                onClick={() => removePredictionEntry(index)}
+                onClick={() => removePredictionDetail(index)}
               />
             </HStack>
           ))}
-          <Button onClick={addPredictionEntry}>Add another year</Button>
+          <Button onClick={addPredictionDetail}>Add another year and percentage</Button>
         </VStack>
         {error && <Box color="red.500" mt={2}>{error}</Box>}
         <Button
@@ -121,7 +144,7 @@ const PredictionForm: React.FC = () => {
           isLoading={loading}
           type="submit"
         >
-          Submit Predictions
+          Submit Prediction
         </Button>
       </form>
     </Box>

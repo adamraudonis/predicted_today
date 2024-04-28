@@ -1,29 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { Box, List, ListItem } from '@chakra-ui/react';
+import { Box, Table, Thead, Tbody, Tr, Th, Td } from '@chakra-ui/react';
 import { supabase } from './supabaseClient';
 
-interface Prediction {
+interface PredictionDetail {
   id: number;
   prediction_text: string;
   prediction_year: number;
-  user_id: string;
+  prediction_percentage: number;
+  user_email: string;
 }
 
 const PredictionsList: React.FC = () => {
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [predictionDetails, setPredictionDetails] = useState<PredictionDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchPredictions = async () => {
+    const fetchPredictionDetails = async () => {
       try {
-        const { data, error } = await supabase
+        let { data: predictionsData, error: predictionsError } = await supabase
           .from('predictions')
-          .select('*');
+          .select(`
+            id,
+            prediction_text,
+            user_email,
+            prediction_details (
+              prediction_year,
+              prediction_percentage
+            )
+          `)
+          .order('id', { ascending: false });
 
-        if (error) throw error;
+        if (predictionsError) throw predictionsError;
 
-        setPredictions(data);
+        // Check if predictionsData is not null
+        if (predictionsData) {
+          // Flatten the data structure for rendering
+          let flattenedDetails: PredictionDetail[] = [];
+          predictionsData.forEach(prediction => {
+            prediction.prediction_details.forEach(detail => {
+              flattenedDetails.push({
+                id: prediction.id,
+                prediction_text: prediction.prediction_text,
+                prediction_year: detail.prediction_year,
+                prediction_percentage: detail.prediction_percentage,
+                user_email: prediction.user_email
+              });
+            });
+          });
+
+          setPredictionDetails(flattenedDetails);
+        }
       } catch (error: any) {
         setError(error.error_description || error.message);
       } finally {
@@ -31,21 +58,34 @@ const PredictionsList: React.FC = () => {
       }
     };
 
-    fetchPredictions();
+    fetchPredictionDetails();
   }, []);
 
   if (loading) return <Box>Loading...</Box>;
   if (error) return <Box>Error: {error}</Box>;
 
   return (
-    <Box>
-      <List spacing={3}>
-        {predictions.map((prediction) => (
-          <ListItem key={prediction.id}>
-            {prediction.prediction_text} - {prediction.prediction_year}
-          </ListItem>
-        ))}
-      </List>
+    <Box overflowX="auto">
+      <Table variant="simple">
+        <Thead>
+          <Tr>
+            <Th>Prediction Text</Th>
+            <Th isNumeric>Year</Th>
+            <Th isNumeric>Value (%)</Th>
+            <Th>User Email</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {predictionDetails.map((detail) => (
+            <Tr key={detail.id}>
+              <Td>{detail.prediction_text}</Td>
+              <Td isNumeric>{detail.prediction_year}</Td>
+              <Td isNumeric>{detail.prediction_percentage}</Td>
+              <Td>{detail.user_email}</Td>
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
     </Box>
   );
 };
