@@ -8,6 +8,13 @@ interface PredictionDetail {
   percentage: string;
 }
 
+interface PredictionData {
+  id: string;
+  prediction_text: string;
+  user_id: string;
+  user_email: string;
+}
+
 const PredictionForm: React.FC = () => {
   const [predictionText, setPredictionText] = useState('');
   const [predictionDetails, setPredictionDetails] = useState<PredictionDetail[]>([{ year: '', percentage: '' }]);
@@ -41,16 +48,16 @@ const PredictionForm: React.FC = () => {
           prediction_text: predictionText,
           user_id: user.id,
           user_email: user.email
-        });
+        }) as { data: PredictionData[] | null, error: any };
 
       if (predictionError) throw predictionError;
 
-      // Check if predictionData is not null and has at least one record
-      if (!predictionData || (predictionData as any[]).length === 0) {
+      // Assuming PredictionData is the correct type for the data returned from Supabase
+      if (!predictionData || predictionData.length === 0) {
         throw new Error('Failed to insert prediction data.');
       }
 
-      const predictionId = (predictionData as any[])[0].id; // Type assertion to any[] to satisfy TypeScript
+      const predictionId = predictionData[0].id;
 
       const { error: detailsError } = await supabase
         .from('prediction_details')
@@ -67,8 +74,12 @@ const PredictionForm: React.FC = () => {
       alert('Prediction submitted successfully.');
       setPredictionDetails([{ year: '', percentage: '' }]);
       setPredictionText('');
-    } catch (error: any) {
-      setError(error.error_description || error.message);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     } finally {
       setLoading(false);
     }
