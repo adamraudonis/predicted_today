@@ -17,7 +17,12 @@ const Header: React.FC = () => {
   };
 
   return (
-    <Flex justifyContent="space-between" alignItems="center" p={4} bg="blue.500" color="white">
+    <Flex
+      justifyContent="space-between"
+      alignItems="center"
+      p={4}
+      bg="blue.500"
+    >
       <Text fontSize="lg" fontWeight="bold">
         Predicted Today
       </Text>
