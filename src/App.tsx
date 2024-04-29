@@ -27,20 +27,20 @@ import AddPrediction from './components/AddPrediction';
 
 // import About from './components/About';
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom'; // Navigate
 
-const PrivateRoute = ({ element, session, ...rest }: any) => {
-  // redirect to home page if user is not authenticated
-  if (!session) {
-    return <Navigate to="/" />;
-  }
-  return element;
-};
+// const PrivateRoute = ({ element, session, ...rest }: any) => {
+//   // redirect to home page if user is not authenticated
+//   if (!session) {
+//     return <Navigate to="/" />;
+//   }
+//   return element;
+// };
 
 export default function App() {
   const [session, setSession] = useState<any | null>(null);
   const [isDone, setIsDone] = useState<boolean | null>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  // const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
     // This doesn't seem to work anymore
