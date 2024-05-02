@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Button,
@@ -12,6 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { supabase } from '../supabaseClient';
 import { CloseIcon } from '@chakra-ui/icons';
+import LineGraph from './LineGraph';
 
 interface PredictionEntry {
   year: string;
@@ -23,6 +24,44 @@ type AddPredictionProps = {
 };
 
 const AddPrediction: React.FC<AddPredictionProps> = () => {
+  // const svgRef = useRef<SVGSVGElement>(null);
+  const [points, setPoints] = useState<[number, number][]>([]);
+  const graph = useRef<LineGraph | null>(null);
+
+  // Callback ref to handle SVG initialization immediately when the element is mounted
+  const setSvgRef = (node: SVGSVGElement | null) => {
+    if (node && !graph.current) {
+      // Check if node exists and graph is not already initialized
+      console.log('Initializing graph');
+      graph.current = new LineGraph();
+      graph.current.initialize(node);
+      graph.current.updatePoints = () => {
+        console.log('inside update points');
+        if (graph.current) {
+          console.log(' graph.current.getPoints()', graph.current.getPoints());
+          setPoints([...graph.current.getPoints()]); // Update React state when D3 state changes
+        }
+      };
+    }
+  };
+
+  console.log('inside should re render', points);
+
+  useEffect(() => {
+    console.log('the points changed');
+    // if (svgRef.current) {
+    //   console.log('initializing graph');
+    //   graph.current = new LineGraph();
+    //   graph.current.initialize(svgRef.current);
+    //   graph.current.update = () => {
+    //     // Override update method to include state setting
+    //     if (graph.current) {
+    //       setPoints(graph.current.getPoints()); // Update React state when D3 state changes
+    //     }
+    //   };
+    // }
+  }, [points]);
+
   // TODO: Get the url param for example:
   // http://localhost:3000/add_prediction?id=6
   const urlParams = new URLSearchParams(window.location.search);
@@ -117,6 +156,26 @@ const AddPrediction: React.FC<AddPredictionProps> = () => {
 
   return (
     <Box p={4}>
+      <Box>
+        <svg ref={setSvgRef}></svg>
+        <table>
+          <thead>
+            <tr>
+              <th>X (Year)</th>
+              <th>Y (Value)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {points.map((point, index) => (
+              <tr key={index}>
+                <td>{point[0]}</td>
+                <td>{point[1].toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Box>
+
       <form onSubmit={handlePredictionSubmit}>
         <VStack spacing={4}>
           {predictions.map((prediction, index) => (
