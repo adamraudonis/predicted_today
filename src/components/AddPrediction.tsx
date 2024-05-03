@@ -39,7 +39,7 @@ const AddPrediction: React.FC<AddPredictionProps> = () => {
         console.log('inside update points');
         if (graph.current) {
           console.log(' graph.current.getPoints()', graph.current.getPoints());
-          setPoints([...graph.current.getPoints()]); // Update React state when D3 state changes
+          setPoints([...graph.current.getPoints().sort((a, b) => a[0] - b[0])]); // Update React state when D3 state changes
         }
       };
     }

@@ -41,13 +41,19 @@ export default class LineGraph {
     // This should be overridden by the React component
   }
 
-  addPoint(point: [number, number]): void {
-    console.log('inside add point');
-    this.points.push(point);
-  }
-
   getPoints(): [number, number][] {
     return this.points;
+  }
+
+  addPoint(point: [number, number]): void {
+    console.log('Adding point:', point);
+    const existingPointIndex = this.points.findIndex((p) => p[0] === point[0]);
+    if (existingPointIndex !== -1) {
+      this.points[existingPointIndex] = point;
+    } else {
+      this.points.push(point);
+    }
+    this.points.sort((a, b) => a[0] - b[0]);
   }
 
   updateGraph() {
